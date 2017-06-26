@@ -5,6 +5,6 @@
 
 <br>
 
-** Display **
+   ** 游戏展示 **
 
  [消灭星星游戏demo](https://cyanar.github.io/shoot-stars/消灭星星.html)
