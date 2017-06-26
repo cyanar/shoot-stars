@@ -7,4 +7,4 @@
 
    ** 游戏展示 **
 
- [消灭星星游戏demo](https://cyanar.github.io/shoot-stars/index.html)
+ [消灭星星](https://cyanar.github.io/shoot-stars/shootstars.html)
