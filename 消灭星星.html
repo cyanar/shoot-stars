@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>Document</title>
+    <style>
+      body{
+        height:600px;
+        position:relative;
+        background:-webkit-linear-gradient(top,#3b3e89,#9fa1d1);
+      }
+      *{
+        margin:0;
+        padding:0;
+      }
+     #ufo{
+         width: 130px;
+         height: 100px;
+         background:url(images/ufo.png) no-repeat;
+         background-size:contain;
+         position:absolute;
+         z-index:5;
+         left:600px;
+         bottom:-40px;
+     }
+    .bullet{
+         width: 10px;
+         height: 10px;
+         background:-webkit-linear-gradient(left,#b11424,#e71f33);
+         border-radius:50%;
+         position:absolute;
+         box-shadow:0 0 10px #fff;
+    }
+    .star{
+         width: 74px;
+         height: 74px;
+         position:absolute;
+    }
+    .moon{
+        width: 200px;
+        height: 200px;
+        background:url(images/moon.png) no-repeat;
+        background-size:contain;
+        position:absolute;
+        top:10px;
+        right:10px;
+    }
+    .start {
+        width: 240px;
+        height: 22px;
+        background:#fff;
+        position:absolute;
+        border-radius:8px;
+        bottom:-46px;
+        right:0px;
+        padding:10px;
+    }
+    .start p{
+        font-size: 14px;
+        font-weight: bold;
+    }
+    h2{
+        color:#fff;
+    }
+    </style>
+</head>
+<body>
+<div class="start">
+    <p>左右键控制飞船移动，空格键发射子弹</p>
+</div>
+<div id="ufo"></div>
+<div class="moon"></div>
+<h2 id="number">消灭了0个星星</h2>
+<h2 id = "time">倒计时:100s</h2>
+<h2>目标：10个星星</h2>
+</body>
+<script src="js/jquery-1.12.4.js"></script>
+<script src="js/underscore.js"></script>
+<script>
+     var ufo = document.getElementById("ufo");
+     var w = document.documentElement.clientWidth-200;
+     // 星星个数
+     var number = 0;
+     // 倒计时间
+     var allTime = 30;
+     // 飞船初始位置
+     var tx = 600;
+
+     function move(){
+        document.onkeydown = function(event){
+            if(event.keyCode == 37){
+                 tx = (tx-8)<0?0:(tx-8);
+                 ufo.style.left = tx + "px";
+            }
+            if(event.keyCode == 39){
+                tx = (tx+8)>w?w:(tx+8);
+                 ufo.style.left = tx + "px";
+            }
+            if(event.keyCode == 32){
+                // 飞船移除后不再发射子弹
+                 if(!$("#ufo").length) return;
+                    new Bullet();
+            }
+        }
+    }
+    move();
+    // 子弹类
+    function Bullet(){
+        this.dom = null;
+        this.bx = ufo.offsetLeft+60;
+        this.by = 600;
+        this.init();
+        bulletsArr.push(this);
+    }
+    Bullet.prototype.init = function(){
+       this.dom = document.createElement("div");
+       this.dom.className = "bullet";
+       document.body.appendChild(this.dom);
+       this.dom.style.left = this.bx+ "px";
+       this.dom.style.top = this.by + "px";
+   }
+   Bullet.prototype.shoot = function(){
+          this.by--;
+          if(this.by<0){
+             this.release();
+          }
+          this.dom.style.top = this.by + "px";
+   }
+   Bullet.prototype.release = function(){
+       document.body.removeChild(this.dom);
+       for(var i=0;i<bulletsArr.length;i++){
+          if(bulletsArr[i]==this){
+             bulletsArr.splice(i,1);
+          }
+      }
+   }
+   var bulletsArr = [];
+   setInterval(function(){
+      _.each(bulletsArr,function(b){
+             b&&b.shoot();
+          });
+  },5)
+
+// 星星类
+   function Star(){
+       this.dom = null;
+       this.sx = _.random(0,document.documentElement.clientWidth-230);
+       this.sy = 0;
+       this.speed = _.random(1,5);
+       this.init();
+       starsArr.push(this);
+   }
+  Star.prototype.init = function(){
+       this.dom = document.createElement("div");
+       this.dom.className = "star";
+       document.body.appendChild(this.dom);
+       this.dom.style.left = this.sx + "px";
+       this.dom.style.top = this.sy + "px";
+       this.dom.style.background = "url('images/star.png') no-repeat";
+       this.dom.style.backgroundSize = "contain";
+   }
+ Star.prototype.drop = function(){
+       this.sy += this.speed;
+       if(this.sy>500){
+          this.release();
+       }
+       this.dom.style.top = this.sy + "px";
+ }
+ Star.prototype.release = function(){
+      document.body.removeChild(this.dom);
+      for(var i=0;i<starsArr.length;i++){
+          if(starsArr[i]==this){
+             starsArr.splice(i,1);
+          }
+      }
+ }
+ var starsArr = [];
+ var frame = 0;
+ // 设置定时器生成星星
+  timer = setInterval(function(){
+    frame ++;
+    if(frame%50==0){
+        new Star();
+        allTime --;
+    }
+    if(allTime ==0){
+        alert("game over");
+        clearInterval(timer);
+        document.body.removeChild(ufo);
+    }
+    document.getElementById("time").innerHTML = "倒计时:" + allTime +"s";
+      _.each(starsArr,function(s){
+         s&&s.drop();
+      })
+  },20)
+
+// 判断星星和子弹之间的距离
+timer2 = setInterval(function(){
+    for(var j=0;j<bulletsArr.length;j++){
+     for(var k=0;k<starsArr.length;k++){
+             var len = calDistance(bulletsArr[j]&&bulletsArr[j].bx,bulletsArr[j]&&bulletsArr[j].by,starsArr[k].sx,starsArr[k].sy);
+             if(len<60){
+               /* starsArr[k].dom.style.background = "url('images/stardie.png') no-repeat";
+                starsArr[k].dom.style.backgroundSize = "contain";*///更换背景图片
+                starsArr[k].release();
+                bulletsArr[j].release();
+                number ++;
+                document.getElementById("number").innerHTML = "消灭了"+ number+"个星星";
+             }
+             if(number>9){
+                // 消灭掉了10个星星飞到月球
+                clearInterval(timer);
+                $("#ufo").animate({
+                    "width":"60px",
+                    "height":"40px",
+                    "left": 1220,
+                    "bottom": 490,
+                    "opacity":0.4,
+                },2500,function(){
+                    alert("你已经干掉了"+number+"个星星，恭喜你登月成功");
+                    clearInterval(timer2);
+                    document.body.removeChild(ufo);
+                })
+             }
+     }
+}
+},100)
+
+//计算两个点之间的距离,先求平方和,再开平方
+function calDistance(x1, y1, x2, y2) {
+    return Math.sqrt(Math.pow(x1 - x2, 2) + Math.pow(y1 - y2, 2));
+}
+</script>
+</html>
